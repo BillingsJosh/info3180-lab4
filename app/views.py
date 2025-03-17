@@ -4,9 +4,8 @@ from flask import render_template, request, redirect, url_for, flash, session, a
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.utils import secure_filename
 from app.models import UserProfile
-from app.forms import LoginForm
+from app.forms import LoginForm, UploadForm
 from werkzeug.security import check_password_hash
-
 
 ### 
 # Routing for your application.
@@ -25,30 +24,32 @@ def about():
 
 
 @app.route('/upload', methods=['POST', 'GET'])
+@login_required  # Ensures the route is only accessible to logged-in users
 def upload():
-    # Instantiate your form class
-    form = UploadForm()  # Ensure you have a form defined for this route
+    form = UploadForm()
 
-    # Validate file upload on submit
+    # If the form is submitted and validated
     if form.validate_on_submit():
-        # Get file data and save to your uploads folder
-        file = form.file.data
-        filename = secure_filename(file.filename)
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        file = form.file.data  # Get the uploaded file
 
-        flash('File Saved', 'success')
-        return redirect(url_for('home'))  # Redirect to home or another appropriate route
+        if file:
+            # Secure the filename and save the file
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
-    return render_template('upload.html', form=form)
+            # Flash a success message
+            flash('File uploaded successfully!', 'success')
+            return redirect(url_for('home'))  # Redirect to the home page or another route
+
+    return render_template('upload.html', form=form)  # Render the upload page with the form
 
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
     form = LoginForm()
 
-    # Check if the form is valid on submit
+    # If the form is submitted and validated
     if form.validate_on_submit():
-        # Retrieve the username and password from the form
         username = form.username.data
         password = form.password.data
 
@@ -57,7 +58,6 @@ def login():
 
         # If the user is found and the password matches
         if user and check_password_hash(user.password, password):
-            # Log the user in
             login_user(user)
             flash('Login successful! Redirecting to the upload page...', 'success')
             return redirect(url_for('upload'))  # Redirect to the /upload route after successful login
@@ -68,8 +68,7 @@ def login():
     return render_template('login.html', form=form)
 
 
-# user_loader callback. This callback is used to reload the user object from
-# the user ID stored in the session
+# User loader callback function
 @login_manager.user_loader
 def load_user(id):
     return db.session.execute(db.select(UserProfile).filter_by(id=id)).scalar()
@@ -86,12 +85,12 @@ def flash_errors(form):
             flash(u"Error in the %s field - %s" % (
                 getattr(form, field).label.text,
                 error
-), 'danger')
+            ), 'danger')
 
 
 @app.route('/<file_name>.txt')
 def send_text_file(file_name):
-    """Send your static text file."""
+    """Send a static text file."""
     file_dot_text = file_name + '.txt'
     return app.send_static_file(file_dot_text)
 
@@ -99,7 +98,7 @@ def send_text_file(file_name):
 @app.after_request
 def add_header(response):
     """
-    Add headers to both force latest IE rendering engine or Chrome Frame,
+    Add headers to force the latest IE rendering engine or Chrome Frame,
     and also to cache the rendered page for 10 minutes.
     """
     response.headers['X-UA-Compatible'] = 'IE=Edge,chrome=1'

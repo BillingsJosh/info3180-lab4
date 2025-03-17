@@ -3,18 +3,19 @@ from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 from .config import Config
-# import flask migrate here
 
+# Instantiate Flask app
 app = Flask(__name__)
 app.config.from_object(Config)
 
+# Initialize extensions
 db = SQLAlchemy(app)
-migrate = Migrate(app, db)
-# Instantiate Flask-Migrate library here
+migrate = Migrate(app, db)  # Migrate initialized with the app and db
 
-# Flask-Login login manager
+# Initialize login manager
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-from app import views
+# Import views after the app has been instantiated to avoid circular imports
+from app import views  # Import views after app initialization
