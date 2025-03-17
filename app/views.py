@@ -6,10 +6,14 @@ from werkzeug.utils import secure_filename
 from app.models import UserProfile
 from app.forms import LoginForm, UploadForm
 from werkzeug.security import check_password_hash
+from flask import send_from_directory
 
 ### 
 # Routing for your application.
 ### 
+
+# Set the upload folder configuration
+app.config['UPLOAD_FOLDER'] = 'uploads'  # Ensure this matches your actual folder name
 
 @app.route('/')
 def home():
@@ -110,3 +114,32 @@ def add_header(response):
 def page_not_found(error):
     """Custom 404 page."""
     return render_template('404.html'), 404
+
+
+def get_uploaded_images():
+    upload_folder = os.path.join(os.getcwd(), app.config['UPLOAD_FOLDER'])
+    image_files = []  # List to store image filenames
+
+    # Walk through the folder and add image filenames to the list
+    for subdir, dirs, files in os.walk(upload_folder):
+        for file in files:
+            # Check if file is an image (optional filtering)
+            if file.lower().endswith(('.png', '.jpg', '.jpeg')):
+                image_files.append(file)
+
+    return image_files
+
+
+@app.route('/uploads/<filename>')
+def get_image(filename):
+    # Return the image file from the uploads folder
+    return send_from_directory(os.path.join(os.getcwd(), app.config['UPLOAD_FOLDER']), filename)
+
+
+@app.route('/files')
+@login_required  # Ensure the user is logged in to access this page
+def files():
+    # Get the list of uploaded image filenames
+    images = get_uploaded_images()
+    return render_template('files.html', images=images)
+

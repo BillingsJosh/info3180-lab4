@@ -18,3 +18,24 @@ body {
     border-top-left-radius: 0;
     border-top-right-radius: 0;
 }
+.image-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);  /* Creates exactly 3 columns */
+    gap: 20px;  /* Space between grid items */
+    padding: 20px;
+  }
+  
+  .image-item {
+    border: 1px solid #ddd;  /* Optional: adds a border around each image */
+    border-radius: 8px;       /* Optional: rounded corners for images */
+    overflow: hidden;         /* Ensures rounded corners work well */
+    background-color: #f9f9f9; /* Optional: background color for the items */
+  }
+  
+  .image {
+    width: 100%;              /* Makes the image fill the entire grid item */
+    height: auto;             /* Keeps the image's aspect ratio */
+    border-radius: 8px;       /* Optional: round the image's corners */
+  }
+  
+  
