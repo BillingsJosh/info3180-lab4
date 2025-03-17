@@ -8,12 +8,12 @@ from app.forms import LoginForm, UploadForm
 from werkzeug.security import check_password_hash
 from flask import send_from_directory
 
+# Set the upload folder configuration
+app.config['UPLOAD_FOLDER'] = 'uploads'  # Ensure this matches your actual folder name
+
 ### 
 # Routing for your application.
 ### 
-
-# Set the upload folder configuration
-app.config['UPLOAD_FOLDER'] = 'uploads'  # Ensure this matches your actual folder name
 
 @app.route('/')
 def home():
@@ -143,3 +143,12 @@ def files():
     images = get_uploaded_images()
     return render_template('files.html', images=images)
 
+
+# Logout route
+@app.route('/logout')
+@login_required  # Ensure that the user must be logged in to log out
+def logout():
+    """Logs out the current user and redirects to the home page."""
+    logout_user()  # Logs out the current user
+    flash('You have been logged out successfully!', 'success')  # Flash a logout message
+    return redirect(url_for('home'))  # Redirect to the home page
